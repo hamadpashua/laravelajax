@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -12,6 +13,7 @@
     <link rel="stylesheet" href="{{ asset('toastr/toastr.min.css') }}">
     <title>Document</title>
 </head>
+
 <body>
     <div class="container">
         <div class="row" style="margin-top:45px">
@@ -19,32 +21,42 @@
                 <div class="card">
                     <div class="card-header">Countries</div>
                     <div class="card-body">
-                        ......
+                        <table class="table table-hover tale-condensed" id="countries-table">
+                            <thead>
+                                <th>#</th>
+                                <th>Country Name</th>
+                                <th>Capital City</th>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card-header">Add Country</div>
-                <div class="card-body">
-                    <form action="{{ route('add.countries') }}" id="add-countries-form" method="post">
-                        @csrf
-                        <div class="form-group">
-                            <label for="Country Name">Country Name</label>
-                            <input type="text" name="country_name" id="" class="form-control" placeholder="Enter Country Name">
-                            <span class="text-danger error-text country_name_error"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="Capital City">Capital City</label>
-                            <input type="text" name="capital_city" id="" class="form-control" placeholder="Enter Capital City">
-                            <span class="text-danger error-text capital_city_error"></span>
-                        </div>
-                        <div class="form-group">
-                            <button class="btn btn-block btn-success" type="submit">SAVE</button>
-                        </div>
-                    </form>
+                <div class="card">
+                    <div class="card-header">Add Country</div>
+                    <div class="card-body">
+                        <form action="{{ route('add.countries') }}" id="add-countries-form" method="post">
+                            @csrf
+                            <div class="form-group">
+                                <label for="Country Name">Country Name</label>
+                                <input type="text" name="country_name" id="" class="form-control"
+                                    placeholder="Enter Country Name">
+                                <span class="text-danger error-text country_name_error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="Capital City">Capital City</label>
+                                <input type="text" name="capital_city" id="" class="form-control"
+                                    placeholder="Enter Capital City">
+                                <span class="text-danger error-text capital_city_error"></span>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-block btn-success" type="submit">SAVE</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -59,39 +71,57 @@
     <script>
         toastr.options.preventDuplicate = true;
         $.ajaxSetup({
-            headers:{
-                'X-CSRF-TOKEN':$('meta[name="csrf-token"]').attr('content')
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
-        $(function() {
-            $('#add-countries-form').on('submit', function(e) {
+        $(function () {
+            $('#add-countries-form').on('submit', function (e) {
                 e.preventDefault();
                 var form = this;
                 $.ajax({
-                    url:$(form).attr('action'),
-                    method:$(form).attr('method'),
+                    url: $(form).attr('action'),
+                    method: $(form).attr('method'),
                     data: new FormData(form),
-                    processData:false,
+                    processData: false,
                     dataType: 'json',
-                    contentType:false,
-                    beforeSend:function() {
+                    contentType: false,
+                    beforeSend: function () {
                         $(form).find('span.error-text').text('');
                     },
-                    success:function(data){
+                    success: function (data) {
                         if (data.code == 0) {
-                            $.each(data.error, function(prefix, val){
-                                $(form).find('span.'+prefix+'_error').text(val[0])
+                            $.each(data.error, function (prefix, val) {
+                                $(form).find('span.' + prefix + '_error').text(val[0])
                             });
                         } else {
                             $(form)[0].reset();
-                            // alert(data.msg);
+                            $('#countries-table').DataTable().ajax.reload(null, false);
                             toastr.success(data.msg);
                         }
                     }
                 });
             });
+
+            //GETTING ALL THE COUNTRIES DATA
+
+            $('#countries-table').DataTable({
+                processing:true,
+                info:true,
+                ajax:"{{ route('get.countries.list') }}",
+                "pageLength":5,
+                "aLengthMenu":[[5,10,25,50,-1], [5,10,25,50, "All"]],
+                columns: [
+                    {data:'DT_RowIndex', name:'DT_RowIndex'},
+                    { data: 'country_name', name: 'country_name' },
+                    { data: 'capital_city', name: 'capital_city' },
+                ]
+            });
+
+            
         });
     </script>
 </body>
+
 </html>

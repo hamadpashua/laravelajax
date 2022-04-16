@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Country;
 use Illuminate\Http\Request;
+use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Validator;
 
 class CountriesController extends Controller
@@ -26,12 +27,7 @@ class CountriesController extends Controller
             $country = Country::create([
                 'country_name' => $request->country_name,
                 'capital_city' => $request->capital_city
-            ]
-            );
-            // $country = new Country();
-            // $country->country_name = $request->country_name;
-            // $country->capital_city = $request->capital_city;
-            // $query = $country->save();
+            ]);
             if (!$country) {
                 return response()->json(['code' => 0, 'msg' => 'Something Went Wrong!']);
             } else {
@@ -39,6 +35,13 @@ class CountriesController extends Controller
             }
             
         }
-        
     }
+
+    public function getCountryList()
+    {
+        $countries = Country::all();
+        return DataTables::of($countries)->addIndexColumn()->make(true);
+    }
+
+
 }
